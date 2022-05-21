@@ -1,7 +1,7 @@
 from rest_framework.serializers import ModelSerializer
 from rest_framework.serializers import ValidationError
 from django.contrib.auth.models import User
-
+import logging
 from restapi.models import Category, Groups, UserExpense, Expenses
 
 
@@ -68,9 +68,14 @@ class ExpensesSerializer(ModelSerializer):
 
     def validate(self, attrs):
         # user = self.context['request'].user
-        user_ids = [user['user'].id for user in attrs['users']]
-        if len(set(user_ids)) != len(user_ids):
-            raise ValidationError('Single user appears multiple times')
+        try:
+            user_ids = [user['user'].id for user in attrs['users']]
+            if len(set(user_ids)) != len(user_ids):
+                raise ValidationError('Single user appears multiple times')
+        except ValidationError as e:
+            logging.error(e)
+        finally:
+            return attrs
 
         # if data.get('group', None) is not None:
         #     group = Groups.objects.get(pk=data['group'].id)
@@ -95,7 +100,6 @@ class ExpensesSerializer(ModelSerializer):
         # if amount_lent != amount_owed or amount_lent != total_amount:
         #     raise ValidationError('Given amounts are inconsistent')
 
-        return attrs
 
     class Meta(object):
         model = Expenses
