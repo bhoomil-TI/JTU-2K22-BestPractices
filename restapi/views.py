@@ -268,7 +268,7 @@ def reader(url, timeout):
         return conn.read()
 
 
-def multiThreadedReader(urls, num_threads):
+def multi_threaded_reader(urls, num_threads):
     """
         Read multiple files through HTTP
     """
