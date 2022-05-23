@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import urllib.request
 from datetime import datetime
 from decimal import Decimal
@@ -215,9 +215,11 @@ def multi_threaded_reader(urls, num_threads) -> list:
         Read multiple files through HTTP
     """
     result = []
-    for url in urls:
-        data = reader(url, 60)
-        data = data.decode('utf-8')
-        result.extend(data.split("\n"))
+    with ThreadPoolExecutor(max_workers=num_threads) as executor:
+        futures = {executor.submit(reader, url, 60): url for url in urls}
+        for future in as_completed(futures):
+            data = futures[future]
+            data.decode('utf-8')
+            result.extend(data.split("\n"))
     result = sorted(result, key=lambda elem: elem[1])
     return result
